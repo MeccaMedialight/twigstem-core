@@ -12,10 +12,12 @@ class Server
     private $twig;
     private $pageData;
 
-    public function __construct()
+    public function __construct($appDir = null)
     {
         // setup the twig bizness
-        $appDir = dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR;
+        if (!$appDir){
+            $appDir = dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR;
+        }
         $this->dataDir = $appDir . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR;
         $viewDir = $appDir . 'views';
         // get all views
@@ -64,8 +66,8 @@ class Server
             }
             $startTemplateName = @$url_data['path'];
         }
-
         $templateName = basename($startTemplateName, '.twig');
+
         try {
             $template = $this->twig->load($templateName . '.twig');
             $pageData = array_merge($data, $this->loadData($template));
@@ -75,7 +77,6 @@ class Server
             if ($startTemplateName == 'error.twig'){
                 return "ERROR" . $e->getMessage();
             } else {
-
                 return $this->loadAndRender('error.twig', ['error'=>$e->getMessage()]);
             }
 
