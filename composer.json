@@ -1,5 +1,5 @@
 {
-    "name": "lukewigley/twigstem",
+    "name": "mml/twigstem",
     "type": "library",
     "description": "Prototyping tool",
     "keywords": ["php","twig"],
