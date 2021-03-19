@@ -2,3 +2,7 @@
 .idea/modules.xml
 .idea/twigstem-core.iml
 .idea/vcs.xml
+/composer.lock
+/phpunit.xml
+/vendor
+.phpunit.result.cache

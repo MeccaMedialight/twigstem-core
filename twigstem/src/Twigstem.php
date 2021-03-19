@@ -1,5 +1,10 @@
 <?php
+
+/**
+ * Twigstem
+ */
 namespace Twigstem;
+
 class Twigstem
 {
     public static $DEBUGMODE = true;

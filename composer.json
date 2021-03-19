@@ -6,7 +6,13 @@
     "homepage": "https://github.com/MeccaMedialight/twigstem-core",
     "license": "MIT",
     "require": {
-        "twig/twig": "^3.3"
+        "php": ">=7.2.5",
+        "twig/twig": "^3.0"
+    },
+    "autoload": {
+        "psr-4" : {
+            "twigstem\\" : "src/"
+        }
     },
     "authors": [
         {
