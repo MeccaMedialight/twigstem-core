@@ -1,4 +1,4 @@
 <?php
-require_once "system/Twigstem.php";
-$Twigstem = new Twigstem();
+//require_once "src/Server.php";
+$Twigstem = new \Twigstem\Server();
 echo $Twigstem->loadAndRender();

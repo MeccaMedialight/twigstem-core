@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Twigstem
+ * Server
  */
 namespace Twigstem;
 
-class Twigstem
+class Server
 {
     public static $DEBUGMODE = true;
 
