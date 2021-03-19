@@ -1,0 +1,17 @@
+{
+    "name": "mml/twigstem",
+    "type": "library",
+    "description": "Prototyping tool",
+    "keywords": ["php","twig"],
+    "homepage": "https://github.com/MeccaMedialight/twigstem-core",
+    "license": "MIT",
+    "require": {
+        "twig/twig": "^3.3"
+    },
+    "authors": [
+        {
+            "name": "luke",
+            "email": "luke@meccamedialight.com.au"
+        }
+    ]
+}
