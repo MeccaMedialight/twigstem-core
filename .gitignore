@@ -1,7 +1,4 @@
-.idea/.gitignore
-.idea/modules.xml
-.idea/twigstem-core.iml
-.idea/vcs.xml
+.idea/*
 /composer.lock
 /phpunit.xml
 /vendor

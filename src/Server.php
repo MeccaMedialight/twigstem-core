@@ -2,21 +2,26 @@
 
 /**
  * Server
+ * Simple Twig site server -
  */
+
 namespace Twigstem;
 
 class Server
 {
-    public static $DEBUGMODE = true;
-
     private $twig;
-    private $pageData;
 
-    public function __construct($appDir = null)
+    public function __construct($appDir = null, $debugMode = true)
     {
+
         // setup the twig bizness
-        if (!$appDir){
-            $appDir = dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR;
+        if (!$appDir) {
+            // default directory for views and data
+            $appDir = dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR;
+        }
+        if (!is_dir($appDir)) {
+            $err = "Invalid source directory. Twigstem needs the path to the directory containing view and data files. The directory specified ($appDir) is not available. ";
+            $this->error("Error starting Twigstem", $err);
         }
         $this->dataDir = $appDir . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR;
         $viewDir = $appDir . 'views';
@@ -27,17 +32,9 @@ class Server
             $viewDir,
         );
         $templatelocations = array_merge($templatelocations, $template_sub_dirs);
-//        $ignore = array('_', '.');
-//        array_filter($templatelocations, function($path){
-//            $basename = $basename($path)l
-//            if (!in_array($ignore, substr($path, 1))){
-//                return $path;
-//            }
-//        })
-
 
         $loader = new \Twig\Loader\FilesystemLoader($templatelocations);
-        if (self::$DEBUGMODE) {
+        if ($debugMode) {
             $this->twig = new \Twig\Environment($loader, [
                 'debug' => true,
                 // ...
@@ -50,10 +47,51 @@ class Server
     }
 
     /**
+     * Serve up some content using a template and data
+     *
+     * @param null $startTemplateName
+     * @param array $data
+     */
+    public function serve($startTemplateName = null, $data = array())
+    {
+        $this->status = "200 OK";
+        $output = $this->loadAndRender($startTemplateName, $data);
+        $this->send($output);
+    }
+
+    /**
+     * send the output to the browser
+     * @param $output
+     */
+    public function send($output)
+    {
+        if (!headers_sent()) {
+            $protocol = $_SERVER["SERVER_PROTOCOL"];
+            if (('HTTP/1.1' != $protocol) && ('HTTP/1.0' != $protocol))
+                $protocol = 'HTTP/1.0';
+            header("$protocol $this->status");
+            header('Content-type: text/html; charset=utf-8');
+            header("Cache-Control: no-cache, must-revalidate");
+            header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+            header("Pragma: no-cache");
+        }
+        echo $output;
+        exit();
+
+        //use Symfony\Component\HttpFoundation\Response;
+//        $response = new Response();
+//        $response->setContent($output);
+//        $response->setStatusCode(Response::HTTP_OK);
+//        $response->headers->set('Content-Type', 'text/html');
+//        $response->send();
+    }
+
+    /**
      * Load and render a template.
+     *
      * @param type $startTemplateName (optional)
-     * @param array $datamiox
-     * @return type
+     * @param array $data
+     * @return string html output
      */
     public function loadAndRender($startTemplateName = null, $data = array())
     {
@@ -74,10 +112,12 @@ class Server
 
             return $template->render($pageData);
         } catch (\Exception $e) {
-            if ($startTemplateName == 'error.twig'){
+            if ($startTemplateName == 'error.twig') {
+                $this->status = "404 Not Found";
                 return "ERROR" . $e->getMessage();
             } else {
-                return $this->loadAndRender('error.twig', ['error'=>$e->getMessage()]);
+                $this->status = "404 Not Found";
+                return $this->loadAndRender('error.twig', ['error' => $e->getMessage()]);
             }
 
         }
@@ -219,6 +259,33 @@ class Server
         return ($params);
     }
 
+    private function error($title = "Error", $msg = "Unknown error")
+    {
+        $this->status = '500 Internal Server Error';
+        $output = '<!DOCTYPE html>
+<html>
+    <head>
+        <title>Fatal Error</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            button,html,input,select,textarea{color:#222}html{font:13px/1.4 Verdana,Arial,Helvetica,sans-serif}hr{display:block;height:1px;border:0;border-top:1px solid #ccc;margin:1em 0;padding:0}audio,canvas,img,video{vertical-align:middle}fieldset{border:0;margin:0;padding:0}textarea{resize:vertical}.container{max-width:720px;margin:0 auto;padding:0 10px}.ir{background-color:transparent;border:0;overflow:hidden;text-indent:-9999px}.ir:before{content:"";display:block;width:0;height:150%}.hidden{display:none!important;visibility:hidden}.visuallyhidden{border:0;clip:rect(0000);height:1px;overflow:hidden;position:absolute;width:1px;margin:-1px;padding:0}.visuallyhidden.focusable:active,.visuallyhidden.focusable:focus{clip:auto;height:auto;overflow:visible;position:static;width:auto;margin:0}.invisible{visibility:hidden}.clearfix:after,.clearfix:before{content:" ";display:table}.clearfix:after{clear:both}.clearfix{zoom:1}::-moz-selection,::selection{background:#b3d4fc;text-shadow:none}@media print{*{background:transparent!important;color:#000!important;box-shadow:none!important;text-shadow:none!important}a,a:visited{text-decoration:underline}a[href]:after{content:" (" attr(href) ")"}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}blockquote,pre{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}img,tr{page-break-inside:avoid}img{max-width:100%!important}h2,h3,p{orphans:3;widows:3}h2,h3{page-break-after:avoid}}
+            body{color: #444} .error h1{color:#d51a16}        
+        </style>
+    </head>
+    <body>
+        <div class="container error" style="padding: 2rem;">
+            <h1 >'.$title.'</h1>
+            <hr />
+            <div class="error-content">
+                ' . $msg . '
+                
+            </div>
+        </div>
+
+    </body>
+</html>';
+        $this->send($output);
+    }
 
 }
 
