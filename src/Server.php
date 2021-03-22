@@ -2,7 +2,8 @@
 
 /**
  * Server
- * Simple Twig site server -
+ * Simple Twig site server - Serving up twiggy sites!
+ * @version 1.0.5
  */
 
 namespace Twigstem;
@@ -19,12 +20,13 @@ class Server
             // default directory for views and data
             $appDir = dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR;
         }
+        $appDir = rtrim($appDir, DIRECTORY_SEPARATOR);
         if (!is_dir($appDir)) {
             $err = "Invalid source directory. Twigstem needs the path to the directory containing view and data files. The directory specified ($appDir) is not available. ";
             $this->error("Error starting Twigstem", $err);
         }
         $this->dataDir = $appDir . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR;
-        $viewDir = $appDir . 'views';
+        $viewDir = $appDir . DIRECTORY_SEPARATOR . 'views';
         // get all views
         $template_sub_dirs = glob($viewDir . '/*', GLOB_ONLYDIR); // all folders below the template directory root
 
@@ -44,6 +46,10 @@ class Server
             $this->twig = new \Twig\Environment($loader);
         }
 
+        // add custom functions
+        if (class_exists('\App\TwigExtension')) {
+            $this->twig->addExtension(new \App\TwigExtension());
+        }
     }
 
     /**
@@ -114,7 +120,7 @@ class Server
         } catch (\Exception $e) {
             if ($startTemplateName == 'error.twig') {
                 $this->status = "404 Not Found";
-                return "ERROR" . $e->getMessage();
+                return $this->error('Error', $data['error']);
             } else {
                 $this->status = "404 Not Found";
                 return $this->loadAndRender('error.twig', ['error' => $e->getMessage()]);
@@ -161,9 +167,11 @@ class Server
         if (preg_match_all("/{#\s*data([^}]*)#}/", $str, $matches)) {
             foreach ($matches[1] as $match) {
                 $matched = array_merge($data, $this->parseTplProps($match));
+
                 if (isset($matched['src'])) {
                     // if we can find the file specified, load it
                     $dataPath = $this->dataDir . $matched['src'];
+
                     if (file_exists($dataPath)) {
                         $json = file_get_contents($dataPath);
                         $loaddata = json_decode($json, 1);
@@ -175,12 +183,9 @@ class Server
                             $data = array_merge($data, $loaddata);
                         }
                     }
-
                 }
-
             }
         }
-
         return $data;
     }
 
@@ -274,7 +279,7 @@ class Server
     </head>
     <body>
         <div class="container error" style="padding: 2rem;">
-            <h1 >'.$title.'</h1>
+            <h1 >' . $title . '</h1>
             <hr />
             <div class="error-content">
                 ' . $msg . '
@@ -288,4 +293,3 @@ class Server
     }
 
 }
-
