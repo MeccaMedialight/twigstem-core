@@ -3,7 +3,7 @@
 /**
  * Server
  * Simple Twig site server - Serving up twiggy sites!
- * @version 1.0.6
+ * @version 1.0.7
  */
 
 namespace Twigstem;
@@ -34,7 +34,7 @@ class Server
         $templatelocations = array(
             $this->viewDir,
         );
-        $template_sub_dirs = glob($this->viewDir . '/*', GLOB_ONLYDIR); // all folders below the template directory root
+        $template_sub_dirs = $this->rglob($this->viewDir . '/*', GLOB_ONLYDIR | GLOB_NOSORT); // all folders below the template directory root
         $templatelocations = array_merge($templatelocations, $template_sub_dirs);
 
         // load Twig
@@ -318,7 +318,7 @@ class Server
                     // if we can find the file specified, load it
                     $dataPath = $this->dataDir . DIRECTORY_SEPARATOR . ltrim($matched['src'], DIRECTORY_SEPARATOR);
 
-                    if (file_exists($dataPath)) {
+                    if (file_exists($dataPath) && (!is_dir($dataPath))) {
                         $json = file_get_contents($dataPath);
                         $loadeddata = json_decode($json, 1);
                         // if we have an id, attach the loaded data using this id
@@ -408,6 +408,15 @@ class Server
         }
 
         return ($params);
+    }
+    
+    private function rglob($pattern, $flags = 0)
+    {
+        $files = glob($pattern, $flags);
+        foreach (glob(dirname($pattern) . '/*', GLOB_ONLYDIR | GLOB_NOSORT) as $dir) {
+            $files = array_merge($files, $this->rglob($dir . '/' . basename($pattern), $flags));
+        }
+        return $files;
     }
 
     private function error($title = "Error", $msg = "Unknown error")
