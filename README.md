@@ -15,7 +15,7 @@ Edit your composer to require twigstem
 {
     ...
     "require": {
-    	 "mml/twigstem": "^1.0.2", 
+    	 "mml/twigstem": "^1.0.8", 
     }
 }
 ```
