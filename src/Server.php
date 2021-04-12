@@ -3,7 +3,7 @@
 /**
  * Server
  * Simple Twig site server - Serving up twiggy sites!
- * @version 1.0.7
+ * @version 1.0.8
  */
 
 namespace Twigstem;
@@ -150,7 +150,7 @@ class Server
             }
             $startTemplateName = @$url_data['path'];
         }
-        $templateName = basename($startTemplateName, '.twig');
+        $templateName = dirname($startTemplateName).'/' .basename($startTemplateName, '.twig');
 
         try {
             $template = $this->twig->load($templateName . '.twig');
