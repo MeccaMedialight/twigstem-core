@@ -201,7 +201,7 @@ class Server
         try {
             $template = $this->twig->load($templateName . '.twig');
             $pageData = array_merge($data, $this->loadDataForTemplate($template));
-            if (is_array($this->context)){
+            if (is_array($this->context)) {
                 $pageData = array_merge($this->context, $pageData);
             }
             return $template->render($pageData);
@@ -239,7 +239,7 @@ class Server
      * @param array $default
      * @return array
      */
-    private function loadDataForAjax($requestedPath = null, $default = array()) : array
+    private function loadDataForAjax($requestedPath = null, $default = array()): array
     {
         if (!$requestedPath) {
             // if no starting path, use the requested URL
