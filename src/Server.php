@@ -3,7 +3,7 @@
 /**
  * Server
  * Simple Twig site server - Serving up twiggy sites!
- * @version 1.0.7
+ * @version 1.1
  */
 
 namespace Twigstem;
@@ -13,8 +13,31 @@ use Twig\TemplateWrapper;
 class Server
 {
     private $twig;
+    private $context;
+    private static $instance = null;
 
-    public function __construct($appDir = null, $debugMode = true)
+    /**
+     * Get the singleton instance
+     *
+     * @return Server|null
+     */
+    public static function getInstance()
+    {
+        if (self::$instance == null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Initialise
+     *
+     * @param null $appDir
+     * @param bool $debugMode
+     * @return $this
+     */
+    public function init($appDir = null, $debugMode = true)
     {
 
         // setup the search paths
@@ -56,6 +79,7 @@ class Server
         } else {
             die('no addExtension');
         }
+        return $this;
     }
 
     /**
@@ -100,6 +124,28 @@ class Server
 //        $response->setStatusCode(Response::HTTP_OK);
 //        $response->headers->set('Content-Type', 'text/html');
 //        $response->send();
+    }
+
+    /**
+     * send the output to the browser
+     * @param $output
+     */
+    public function setContext($data)
+    {
+        $this->context = $data;
+    }
+
+    /**
+     *
+     * Get the data that would be loaded with a template
+     *
+     * @param $templateName
+     * @return array|mixed
+     */
+    public function getTemplateData($templateName)
+    {
+        $template = $this->twig->load($templateName . '.twig');
+        return $this->loadDataForTemplate($template);
     }
 
 
@@ -150,11 +196,14 @@ class Server
             }
             $startTemplateName = @$url_data['path'];
         }
-        $templateName = basename($startTemplateName, '.twig');
+        $templateName = dirname($startTemplateName) . '/' . basename($startTemplateName, '.twig');
 
         try {
             $template = $this->twig->load($templateName . '.twig');
             $pageData = array_merge($data, $this->loadDataForTemplate($template));
+            if (is_array($this->context)){
+                $pageData = array_merge($this->context, $pageData);
+            }
             return $template->render($pageData);
         } catch (\Exception $e) {
             // if we have errored loading the error template, then crash out
@@ -183,7 +232,14 @@ class Server
         return $this->loadData($loadedPath);
     }
 
-    private function loadDataForAjax($requestedPath = null, $default = array())
+    /**
+     * Load data for an Ajax response
+     *
+     * @param null $requestedPath
+     * @param array $default
+     * @return array
+     */
+    private function loadDataForAjax($requestedPath = null, $default = array()) : array
     {
         if (!$requestedPath) {
             // if no starting path, use the requested URL
@@ -409,7 +465,7 @@ class Server
 
         return ($params);
     }
-    
+
     private function rglob($pattern, $flags = 0)
     {
         $files = glob($pattern, $flags);

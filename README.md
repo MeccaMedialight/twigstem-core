@@ -15,7 +15,7 @@ Edit your composer to require twigstem
 {
     ...
     "require": {
-    	 "mml/twigstem": "^1.0.2", 
+    	 "mml/twigstem": "^1.1", 
     }
 }
 ```
@@ -37,8 +37,8 @@ php file to handle requests:
   // path to application src directory (directory containing views and data)
   $appDir = dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR;
   // Instantiate and run Twigstem
-  $Twigstem = new \Twigstem\Server($appDir);
-  $Twigstem->serve();
+  $Twigstem = \Twigstem\Server::getInstance();
+  $Twigstem->init($appDir)->serve();
 ```
 
 Next, we need to redirect all requests to this file. For an Apache site, we can use
